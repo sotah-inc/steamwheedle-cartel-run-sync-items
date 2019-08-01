@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/sotah-inc/steamwheedle-cartel/pkg/blizzard"
+
 	"github.com/sirupsen/logrus"
 	"github.com/sotah-inc/steamwheedle-cartel/pkg/act"
-	"github.com/sotah-inc/steamwheedle-cartel/pkg/blizzard"
-	"github.com/sotah-inc/steamwheedle-cartel/pkg/bus"
 	bCodes "github.com/sotah-inc/steamwheedle-cartel/pkg/bus/codes"
 	"github.com/sotah-inc/steamwheedle-cartel/pkg/logging"
 	"github.com/sotah-inc/steamwheedle-cartel/pkg/metric"
@@ -39,20 +39,24 @@ func (sta GatewayState) PublishComputedLiveAuctions(tuples sotah.RegionRealmTupl
 	return nil
 }
 
-func (sta GatewayState) PublishToSyncAllItems(itemIds blizzard.ItemIds) error {
-	// producing a item-ids message for syncing
-	data, err := itemIds.EncodeForDelivery()
+func (sta GatewayState) PublishToCallSyncAllItems(ids blizzard.ItemIds) error {
+	// publishing to call-sync-all-items bus endpoint
+	jsonEncoded, err := ids.EncodeForDelivery()
 	if err != nil {
 		return err
 	}
-	msg := bus.NewMessage()
-	msg.Data = data
 
-	// publishing to sync-all-items
-	logging.Info("Publishing to sync-all-items")
-	if _, err := sta.IO.BusClient.Publish(sta.syncAllItemsTopic, msg); err != nil {
+	logging.Info("Publishing to call-sync-all-items bus endpoint")
+	req, err := sta.IO.BusClient.Request(sta.callSyncAllItemsTopic, jsonEncoded, 10*time.Second)
+	if err != nil {
 		return err
 	}
+
+	if req.Code != bCodes.Ok {
+		return errors.New(req.Err)
+	}
+
+	logging.Info("Finished pushing to call-sync-all-items bus endpoint")
 
 	return nil
 }
@@ -147,10 +151,10 @@ func (sta GatewayState) ComputeAllLiveAuctions(tuples sotah.RegionRealmTimestamp
 	}
 
 	// publishing to sync-items
-	//logging.Info("Publishing tuples to sync-all-items")
-	//if err := sta.PublishToSyncAllItems(nextTuples.ItemIds()); err != nil {
-	//	return err
-	//}
+	logging.Info("Publishing item-ids to call-sync-all-items")
+	if err := sta.PublishToCallSyncAllItems(nextTuples.ItemIds()); err != nil {
+		return err
+	}
 
 	logging.Info("Finished")
 
