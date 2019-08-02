@@ -77,7 +77,7 @@ func init() {
 		"project":      projectId,
 		"service-name": serviceName,
 		"port":         port,
-	}).Info("Producing gateway state")
+	}).Info("Producing sync-items state")
 
 	state, err = run.NewSyncItemsState(run.SyncItemsStateConfig{ProjectId: projectId})
 	if err != nil {
