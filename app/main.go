@@ -72,7 +72,7 @@ func init() {
 	}
 	logging.WithField("port", port).Info("Initializing with port")
 
-	// producing gateway state
+	// producing sync-items state
 	logging.WithFields(logrus.Fields{
 		"project":      projectId,
 		"service-name": serviceName,
