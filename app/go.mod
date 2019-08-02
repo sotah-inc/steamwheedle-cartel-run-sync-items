@@ -1,4 +1,4 @@
-module github.com/sotah-inc/steamwheedle-cartel-run-download-auctions/app
+module github.com/sotah-inc/steamwheedle-cartel-run-sync-items/app
 
 go 1.12
 
