@@ -108,11 +108,11 @@ func main() {
 
 		itemIds, err := blizzard.NewItemIds(string(body))
 		if err != nil {
-			act.WriteErroneousErrorResponse(w, "Could not read decode body", err)
+			act.WriteErroneousErrorResponse(w, "Could not decode request body", err)
 
 			logging.WithFields(logrus.Fields{
 				"error": err.Error(),
-			}).Error("Could not read decode body")
+			}).Error("Could not decode request body")
 
 			return
 		}
